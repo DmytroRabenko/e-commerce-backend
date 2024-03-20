@@ -1,0 +1,51 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String   @unique
+  image     String
+  login     String   @unique
+  password  String
+  salt      String
+  createdAt DateTime @default(now())
+}
+
+
+model Product {
+  id               Int        @id @default(autoincrement())
+  title            String
+  description      String
+  brand            String
+  seria            String
+  gender           String
+  price            Float
+  count            Int
+  country          String
+  madeIn           String
+  openingNote      String
+  heartNote        String
+  finalNote        String
+  media            String[]   // Додано поле media
+  categories       Category[]
+  createdAt        DateTime   @default(now())
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  products    Product[]
+}
