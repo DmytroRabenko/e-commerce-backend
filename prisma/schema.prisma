@@ -38,7 +38,7 @@ model Product {
   openingNote      String
   heartNote        String
   finalNote        String
-  media            String[]   // Додано поле media
+  media            String[]   
   categories       Category[]
   createdAt        DateTime   @default(now())
 }
