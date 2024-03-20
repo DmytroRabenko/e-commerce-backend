@@ -13,7 +13,7 @@ app.use('/api', categoryRouter)
 
 
 app.get("/", (req, res) => {
-  res.send("сервер працює за азпитом /");
+  res.send("сервер працює за запитом /");
 });
 
 app.listen(port, () => {
