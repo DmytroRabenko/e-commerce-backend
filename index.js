@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require('cors')
 require("dotenv").config()
+
 //роути
 const categoryRouter = require('./routes/category.router')
 
