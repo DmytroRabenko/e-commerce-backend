@@ -1,0 +1,70 @@
+┌──────────┐      ┌──────────────┐
+│   User   │      │ MainCategory  │
+│          │      │              │
+│   id     │      │     id       │
+│ username │      │    name      │
+│  email   │      │    value     │
+│ password │      └──────┬───────┘
+│createdAt │              │
+└────┬─────┘              │
+     │                    │
+     ├──────────┐         │
+     │          │         │
+     │          └────────┬┘
+     │                   │
+┌────▼─────┐        ┌────▼────┐
+│ Wishlist │        │ Product │
+│          │        │         │
+│    id    │        │   id    │
+│  userId  │        │  title  │
+│productId │        │description│
+│createdAt │        │  brand  │
+└────┬─────┘        │  price  │
+     │              │  count  │
+     └──────────────┘categoryId│
+                    │mainCategoryId│
+                    │ createdAt│
+                    └─────┬────┘
+                          │
+                          │
+                    ┌─────▼────┐
+                    │ ProductProperty│
+                    │          │
+                    │    id    │
+                    │ productId│
+                    │   name   │
+                    │  value   │
+                    └──────────┘
+
+┌─────────┐         ┌─────────┐
+│Category │         │ Review  │
+│         │         │         │
+│   id    │         │   id    │
+│  name   │         │ content │
+│description│       │ rating  │
+└────┬────┘         │createdAt│
+     │              │productId│
+     │              └────┬────┘
+     │                   │
+     └───────────────────┘
+
+┌──────────┐   ┌──────────────┐
+│ CartItem │   │     Order    │
+│          │   │              │
+│    id    │   │      id      │
+│  userId  │   │    userId    │
+│productId │   │  totalPrice  │
+│ quantity │   │  createdAt   │
+│createdAt │   └──────────────┘
+└────┬─────┘                   
+     │                         
+     │                         
+     └─────────────────────────┐
+                               │
+                        ┌──────▼─────┐
+                        │ OrderProduct│
+                        │            │
+                        │     id     │
+                        │   orderId  │
+                        │  productId │
+                        └────────────┘

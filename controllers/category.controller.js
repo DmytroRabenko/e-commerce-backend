@@ -4,6 +4,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class CategoryController {
+
+  //отримати всі категорії
   async getAllCategories(req, res) {
     try {
       const categories = await prisma.category.findMany();
@@ -14,6 +16,7 @@ class CategoryController {
     }
   }
 
+ //отримати категорію по id
   async getCategoryById(req, res) {
     try {
       const categoryId = parseInt(req.params.id);
@@ -31,7 +34,7 @@ class CategoryController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
-
+  //створити категорію
   async createCategory(req, res) {
     try {
       const { name, description } = req.body;
@@ -51,7 +54,7 @@ class CategoryController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
-
+  //оновити категорію
   async updateCategory(req, res) {
     try {
       const categoryId = parseInt(req.params.id);
@@ -75,7 +78,7 @@ class CategoryController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
-
+  //видалити категорію
   async deleteCategory(req, res) {
     try {
       const categoryId = parseInt(req.params.id);
