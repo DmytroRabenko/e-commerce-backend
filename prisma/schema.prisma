@@ -23,14 +23,14 @@ model User {
 model Product {
   id               Int           @id @default(autoincrement())
   title            String
-  description      String
+  description      String?
   brand            String
   seria            String
   price            Float
   sale             Float?
   count            Int
   value            String?  
-  media            String[] 
+  media            String[]
   rating           Int            @default(0)
   attributes       ProductAttribute[]
   category         Category       @relation(fields: [categoryId], references: [id])

@@ -16,8 +16,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "deploy": "npx prisma generate && npx prisma migrate deploy && render deploy",
-    "start": "npx prisma generate && node index.js",
+    "deploy": "prisma generate && prisma migrate deploy && render deploy",
+    "start": "prisma generate && node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
