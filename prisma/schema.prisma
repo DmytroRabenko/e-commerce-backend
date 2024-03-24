@@ -26,17 +26,19 @@ model Product {
   description      String
   brand            String
   seria            String
-  gender           String?
   price            Float
+  sale             Float?
   count            Int
   value            String?  
   media            String[] 
+  rating           Int            @default(0)
   attributes       ProductAttribute[]
-  category         Category      @relation(fields: [categoryId], references: [id])
+  category         Category       @relation(fields: [categoryId], references: [id])
   categoryId       Int
-  mainCategory     MainCategory? @relation(fields: [mainCategoryId], references: [id])
+  mainCategory     MainCategory?  @relation(fields: [mainCategoryId], references: [id])
   mainCategoryId   Int?
-  createdAt        DateTime      @default(now())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now())
   wishlistItems    Wishlist[]    // Додано протилежне поле зв'язку
   cartItems        CartItem[]    // Додано протилежне поле зв'язку
   orderProducts    OrderProduct[] // Додано зв'язок з проміжною таблицею OrderProduct

@@ -1,8 +1,56 @@
 // categoryController.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const path = require('path');
+const uuid = require('uuid');
 
 class ProductController {
+  createProduct = async (req, res, next) => {
+    try {
+      const { title, description, brand, seria, price, count, value, gender, categoryId, mainCategoryId, attributes } =
+        req.body;
+      const newPrice = parseFloat(price);
+      const newCount = parseFloat(count);
+      const newCategoryId = parseFloat(categoryId);
+      const newMainCategoryId = parseFloat(mainCategoryId);
+
+      // Отримання масиву з фотографіями
+      const mediaFiles = req.files['media'];
+
+      // Створення масиву для зберігання імен файлів
+      let fileNames = [];
+
+      // Переміщення кожного файлу в папку static та збереження імен у масив
+      for (const media of mediaFiles) {
+        let fileName = uuid.v4() + '.jpg';
+        media.mv(path.resolve(__dirname, '..', 'static', fileName));
+        fileNames.push(fileName);
+      }
+
+      // Створення нового продукту з відповідними даними та фотографіями
+      const newProduct = await prisma.product.create({
+        data: {
+          title,
+          description,
+          brand,
+          seria,
+          gender,
+          price: newPrice,
+          count: newCount,
+          value,
+          media: fileNames, // Додаємо масив імен файлів до поля media
+          categoryId: newCategoryId,
+          mainCategoryId: newMainCategoryId,
+        },
+      });
+
+      res.status(201).json({ success: true, message: 'Продукт успішно створений', product: newProduct });
+    } catch (error) {
+      console.error('Помилка при створенні продукту:', error);
+      res.status(500).json({ success: false, message: 'Помилка при створенні продукту' });
+    }
+  };
+ 
   //отримати всі продукти
   async getAllProducts(req, res) {
     try {
@@ -47,38 +95,7 @@ class ProductController {
   };
 
   //створити продукт
-  createProduct = async (req, res) => {
-    const { title, description, brand, seria, price, count, categoryId, mainCategoryId, attributes } = req.body;
-
-    try {
-      // Створення нового продукту в базі даних
-      const newProduct = await prisma.product.create({
-        data: {
-          title,
-          description,
-          brand,
-          seria,
-          price,
-          count,
-          categoryId,
-          mainCategoryId,
-          attributes: {
-            createMany: {
-              data: attributes.map(attribute => ({
-                attributeKey: attribute.key,
-                attributeValue: attribute.value,
-              })),
-            },
-          },
-        },
-      });
-
-      res.status(201).json({ success: true, message: 'Продукт успішно створений', product: newProduct });
-    } catch (error) {
-      console.error('Помилка при створенні продукту:', error);
-      res.status(500).json({ success: false, message: 'Помилка при створенні продукту' });
-    }
-  };
+ 
   //оновити продукт
   updateProduct = async (req, res) => {
     const productId = parseInt(req.params.id);
