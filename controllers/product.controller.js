@@ -10,15 +10,82 @@ class ProductController {
   //отримати всі продукти
   async getAllProducts(req, res) {
     try {
-      const products = await prisma.product.findMany();
-      res.status(200).json(products);
+      // Отримання параметрів запиту, таких як сторінка, розмір сторінки та фільтри
+      const {
+        page = 1,
+        pageSize = 10,
+        brand,
+        category,
+        cat,
+        rating,
+        priceGreaterThan,
+        priceLessThan,
+        sort,
+      } = req.query;
+
+      // Створення об'єкту для фільтрів
+      let filters = {};
+
+      // Додавання фільтрів до об'єкту з фільтрами
+      if (brand) {
+        // brand=Lanvin&brand=Lanvin2
+        if (Array.isArray(brand)) {
+          filters.brand = { in: brand };
+        } else {
+          filters.brand = brand;
+        }
+      }
+      if (category) filters.categoryId = parseInt(category); // &category=2
+      if (cat) filters.mainCategoryId = parseInt(cat); // &cat=2
+      if (rating) filters.rating = parseInt(rating); // &rating=2
+
+      // Додавання фільтрів за ціною
+      if (priceGreaterThan) filters.price = { gte: parseFloat(priceGreaterThan) };
+      if (priceLessThan) {
+        //?price-more=200&priceLessThan=500
+        if (!filters.price) filters.price = {};
+        filters.price.lte = parseFloat(priceLessThan);
+      }
+      //сортування
+      let orderBy = {};
+      if (sort === 'price') orderBy.price = 'asc'; //&sort=price
+      if (sort === '-price') orderBy.price = 'desc'; //&sort=-price
+      if (sort === 'rating') orderBy.rating = 'asc';
+      if (sort === '-rating') orderBy.rating = 'desc';
+      if (sort === 'createdAt') orderBy.createdAt = 'asc';
+      if (sort === '-createdAt') orderBy.createdAt = 'desc';
+
+      // Підрахунок загальної кількості продуктів з урахуванням фільтрів
+      const totalCount = await prisma.product.count({ where: filters });
+
+      // Обчислення загальної кількості сторінок та визначення відступу для поточної сторінки
+      const totalPages = Math.ceil(totalCount / pageSize);
+      const offset = (page - 1) * pageSize;
+
+      // Отримання продуктів для поточної сторінки з урахуванням фільтрів та пагінації
+      const products = await prisma.product.findMany({
+        where: filters,
+        orderBy,
+        skip: offset,
+        take: parseInt(pageSize),
+      });
+
+      // Відправлення відповіді з даними про продукти, загальною кількістю сторінок та поточною сторінкою
+      res.status(200).json({
+        totalPages,
+        currentPage: parseInt(page),
+        pageSize: parseInt(pageSize),
+        totalCount,
+        products,
+      });
     } catch (error) {
+      // Обробка помилок
       console.error('Error getting products:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
   //отримати продукт по id
-  // Контролер для отримання продукту за його id
   getProductById = async (req, res) => {
     const productId = parseInt(req.params.id); // Отримання id продукту з параметрів маршруту
     try {
