@@ -8,6 +8,7 @@ const deleteFiles = require('../middleware/deleteFiles');
 
 class ProductController {
   //отримати всі продукти
+  /*
   async getAllProducts(req, res) {
     try {
       // Отримання параметрів запиту, таких як сторінка, розмір сторінки та фільтри
@@ -84,6 +85,85 @@ class ProductController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+*/
+async getAllProducts(req, res) {
+  try {
+    // Отримання параметрів запиту
+    const {
+      page = 1,
+      pageSize = 10,
+      brands,
+      category,
+      mainCategory,
+      rating,
+      priceGreaterThan,
+      priceLessThan,
+      sort,
+    } = req.query;
+
+    // Формування фільтрів
+    const filters = {};
+    if (brands) filters.brandId = parseInt(brands);
+    if (category) filters.categoryId = parseInt(category);
+    if (mainCategory) filters.mainCategoryId = parseInt(mainCategory);
+    if (rating) filters.rating = parseInt(rating);
+    if (priceGreaterThan) filters.price = { gte: parseFloat(priceGreaterThan) };
+    if (priceLessThan) {
+      if (!filters.price) filters.price = {};
+      filters.price.lte = parseFloat(priceLessThan);
+    }
+
+    // Формування сортування
+    const orderBy = {};
+    switch (sort) {
+      case 'price':
+        orderBy.price = 'asc';
+        break;
+      case '-price':
+        orderBy.price = 'desc';
+        break;
+      case 'rating':
+        orderBy.rating = 'asc';
+        break;
+      case '-rating':
+        orderBy.rating = 'desc';
+        break;
+      case 'createdAt':
+        orderBy.createdAt = 'asc';
+        break;
+      case '-createdAt':
+        orderBy.createdAt = 'desc';
+        break;
+      default:
+        break;
+    }
+
+    // Підрахунок загальної кількості продуктів з урахуванням фільтрів
+    const totalCount = await prisma.product.count({ where: filters });
+
+    // Отримання продуктів для поточної сторінки з урахуванням фільтрів та пагінації
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const offset = (page - 1) * pageSize;
+    const products = await prisma.product.findMany({
+      where: filters,
+      orderBy,
+      skip: offset,
+      take: parseInt(pageSize),
+    });
+
+    // Відправлення відповіді
+    res.status(200).json({
+      totalPages,
+      currentPage: parseInt(page),
+      pageSize: parseInt(pageSize),
+      totalCount,
+      products,
+    });
+  } catch (error) {
+    console.error('Error getting products:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 
   //отримати продукт по id
   getProductById = async (req, res) => {
@@ -119,22 +199,23 @@ class ProductController {
       let {
         title,
         description,
-        brand,
         seria,
         price,
         sale,
         count,
         value,
         gender,
+        brandId,
         categoryId,
         mainCategoryId,
         attributes,
       } = req.body;
       const newPrice = parseFloat(price);
       const newSale = parseFloat(sale);
-      const newCount = parseFloat(count);
-      const newCategoryId = parseFloat(categoryId);
-      const newMainCategoryId = parseFloat(mainCategoryId);
+      const newCount = parseInt(count);
+      const newBrandId = parseInt(brandId);
+      const newCategoryId = parseInt(categoryId);
+      const newMainCategoryId = parseInt(mainCategoryId);
 
       // Перевірка наявності файлів та їх збереження
       const fileNames = req.files?.['media'] ? await saveFiles(req.files['media']) : [];
@@ -144,13 +225,13 @@ class ProductController {
         data: {
           title,
           description,
-          brand,
           seria,
           gender,
           price: newPrice,
           sale: newSale,
           count: newCount,
           value,
+          brandId: newBrandId,
           media: fileNames, // Додаємо масив імен файлів до поля media
           categoryId: newCategoryId,
           mainCategoryId: newMainCategoryId,

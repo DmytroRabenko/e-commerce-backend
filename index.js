@@ -2,12 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 require('dotenv').config();
-const path = require('path')
+const path = require('path');
 const port = process.env.PORT || 3001;
 //експорт роутів
+const userRouter = require('./routes/user.router')
 const productRouter = require('./routes/product.router');
+const brandRouter = require('./routes/brand.router');
 const categoryRouter = require('./routes/category.router');
 const mainCategoryRouter = require('./routes/main-category.router');
+const wishListRouter = require('./routes/wishlist.router');
+const cartRouter = require('./routes/cart.router');
+const orderRouter = require('./routes/order.router');
 
 //ініціалізація express
 const app = express();
@@ -20,9 +25,15 @@ app.use(express.static(path.resolve(__dirname, 'static')));
 //можливість завантажувати файли
 app.use(fileUpload({}));
 //робота з роутами
+app.use('/api', userRouter);
 app.use('/api', productRouter);
+app.use('/api', brandRouter);
 app.use('/api', categoryRouter);
 app.use('/api', mainCategoryRouter);
+app.use('/api', wishListRouter);
+app.use('/api', cartRouter);
+app.use('/api', orderRouter);
+
 
 app.get('/', (req, res) => {
   res.send('сервер працює за запитом /');

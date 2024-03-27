@@ -9,22 +9,27 @@ datasource db {
 }
 
 //Модель для користувача
+//додати до користувача ще відгуки які він залишав товари, які переглядав
+//потім контактні дані для замовлення, адреса, доставка 
 model User {
   id          Int        @id @default(autoincrement())
   username    String
   email       String     @unique
   password    String     @db.VarChar(60)
+  role        String     @default("user")
   createdAt   DateTime   @default(now())
   wishlist    Wishlist[] // Додано зв'язок з моделлю Wishlist
   cartItems   CartItem[] // Додано зв'язок з моделлю CartItem
   orders      Order[]    // Додано зв'язок з моделлю Order
+  reviews     Review[]   // Додано зв'язок з моделлю Review
 }
 //продукт
 model Product {
   id               Int           @id @default(autoincrement())
   title            String
   description      String?
-  brand            String
+  brand            Brand       @relation(fields: [brandId], references: [id])
+  brandId          Int
   seria            String
   price            Float
   sale             Float?
@@ -57,18 +62,26 @@ model ProductAttribute {
 model Review {
   id          Int       @id @default(autoincrement())
   content     String
-  rating      Int        // Оцінка від 1 до 5, наприклад
+  email       String?   //електронна пошта може бути незаданою для зареєстрованих користувачів
+  rating      Int       @default(5)// Оцінка від 1 до 5, наприклад
   createdAt   DateTime  @default(now())
-  // Зв'язок з продуктом
   product     Product   @relation(fields: [productId], references: [id])
   productId   Int
+  user       User?      @relation(fields: [userId], references: [id]) // Зв'язок необов'язковий для не зареєстрованих користувачів
+  userId     Int?
 }
 
+//бренд
+model Brand {
+  id          Int       @id @default(autoincrement())
+  name        String
+  products    Product[]
+}
 //категорія
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
-  description String?
+  description String
   products    Product[]
 }
 //основна категорія
@@ -85,7 +98,6 @@ model Wishlist {
   product    Product   @relation(fields: [productId], references: [id])
   productId  Int
   createdAt  DateTime  @default(now())
-
   @@unique([userId, productId])
 }
 //корзина
@@ -97,7 +109,6 @@ model CartItem {
   productId  Int
   quantity   Int
   createdAt  DateTime  @default(now())
-
   @@unique([userId, productId])
 }
 //замовлення
@@ -108,7 +119,6 @@ model Order {
   products         OrderProduct[] // Змінено зв'язок на проміжну таблицю OrderProduct
   totalPrice       Float
   createdAt        DateTime    @default(now())
-
   @@unique([userId])
 }
 //замовлення продукти
@@ -118,6 +128,5 @@ model OrderProduct {
   orderId   Int
   product   Product  @relation(fields: [productId], references: [id])
   productId Int
-
   @@unique([orderId, productId])
 }
