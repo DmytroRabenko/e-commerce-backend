@@ -17,7 +17,9 @@ const orderRouter = require('./routes/order.router');
 //ініціалізація express
 const app = express();
 //можливість отримувати запити від браузера
-app.use(cors());
+app.use(cors({
+  origin: '*'
+}));
 //можливість читати формат json
 app.use(express.json());
 //можливість читати папку static

@@ -8,7 +8,7 @@ const deleteFiles = require('../middleware/deleteFiles');
 
 class ProductController {
   //отримати всі продукти
-  /*
+  /*не знаю перевірити
   async getAllProducts(req, res) {
     try {
       // Отримання параметрів запиту, таких як сторінка, розмір сторінки та фільтри
@@ -86,6 +86,7 @@ class ProductController {
     }
   }
 */
+  /*працює
 async getAllProducts(req, res) {
   try {
     // Отримання параметрів запиту
@@ -164,6 +165,98 @@ async getAllProducts(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+*/
+  async getAllProducts(req, res) {
+    try {
+      // Отримання параметрів запиту
+      const {
+        page = 1,
+        pageSize = 10,
+        brands,
+        category,
+        mainCategory,
+        rating,
+        priceGreaterThan,
+        priceLessThan,
+        sort,
+      } = req.query;
+
+      // Формування фільтрів
+      const filters = {};
+      if (brands) filters.brandId = parseInt(brands);
+      if (category) filters.categoryId = parseInt(category);
+      if (mainCategory) filters.mainCategoryId = parseInt(mainCategory);
+      if (rating) filters.rating = parseInt(rating);
+      if (priceGreaterThan) filters.price = { gte: parseFloat(priceGreaterThan) };
+      if (priceLessThan) {
+        if (!filters.price) filters.price = {};
+        filters.price.lte = parseFloat(priceLessThan);
+      }
+
+      // Формування сортування
+      const orderBy = {};
+      switch (sort) {
+        case 'price':
+          orderBy.price = 'asc';
+          break;
+        case '-price':
+          orderBy.price = 'desc';
+          break;
+        case 'rating':
+          orderBy.rating = 'asc';
+          break;
+        case '-rating':
+          orderBy.rating = 'desc';
+          break;
+        case 'createdAt':
+          orderBy.createdAt = 'asc';
+          break;
+        case '-createdAt':
+          orderBy.createdAt = 'desc';
+          break;
+        default:
+          break;
+      }
+
+      // Отримання загальної кількості продуктів з урахуванням фільтрів
+      const totalCount = await prisma.product.count({ where: filters });
+
+      // Отримання продуктів для поточної сторінки з урахуванням фільтрів та пагінації
+      const totalPages = Math.ceil(totalCount / pageSize);
+      const offset = (page - 1) * pageSize;
+      let products = await prisma.product.findMany({
+        where: filters,
+        include: {
+          brand: true,
+          category: true,
+          mainCategory: true,
+        },
+        orderBy,
+        skip: offset,
+        take: parseInt(pageSize),
+      });
+
+      // Додавання кількості відгуків до кожного продукту
+      products = await Promise.all(
+        products.map(async product => {
+          const reviewCount = await prisma.review.count({ where: { productId: product.id } });
+          return { ...product, reviewCount };
+        })
+      );
+
+      // Відправлення відповіді
+      res.status(200).json({
+        totalPages,
+        currentPage: parseInt(page),
+        pageSize: parseInt(pageSize),
+        totalCount,
+        products,
+      });
+    } catch (error) {
+      console.error('Error getting products:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
 
   //отримати продукт по id
   getProductById = async (req, res) => {
